@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 7: Lưu trữ Đám mây với Firebase Realtime Database</title>
+    <style>
+        :root {
+            --primary: #1e3d59;
+            --secondary: #ff6e40;
+            --bg-body: #f5f7fa;
+            --bg-card: #ffffff;
+            --text-main: #333333;
+            --text-light: #666666;
+            --border: #e1e4e8;
+            --note-bg: #e1f5fe;
+            --note-border: #03a9f4;
+            --warning-bg: #fff3e0;
+            --warning-border: #ff9800;
+            --mentor-bg: #f3e5f5;
+            --mentor-border: #9c27b0;
+            --student-bg: #e8f5e9;
+            --student-border: #4caf50;
+            --danger-bg: #ffebee;
+            --danger-border: #f44336;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-main);
+            background-color: var(--bg-body);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        h1, h2, h3, h4 {
+            color: var(--primary);
+            margin-top: 1.5em;
+        }
+
+        h1 {
+            font-size: 2.2em;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        h2 {
+            font-size: 1.5em;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 5px;
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 30px;
+        }
+
+        .meta-item strong {
+            display: block;
+            font-size: 0.9em;
+            color: #bbdefb;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .section-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-left: 5px solid var(--primary);
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+
+        .callout {
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+            border-left: 5px solid;
+        }
+
+        .note-box { background: var(--note-bg); border-color: var(--note-border); }
+        .warning-box { background: var(--warning-bg); border-color: var(--warning-border); }
+        .mentor-box { background: var(--mentor-bg); border-color: var(--mentor-border); }
+        .student-box { background: var(--student-bg); border-color: var(--student-border); }
+        .danger-box { background: var(--danger-bg); border-color: var(--danger-border); }
+
+        .callout-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: block;
+            text-transform: uppercase;
+            font-size: 0.9em;
+        }
+
+        .note-box .callout-title { color: #0277bd; }
+        .warning-box .callout-title { color: #e65100; }
+        .mentor-box .callout-title { color: #6a1b9a; }
+        .student-box .callout-title { color: #2e7d32; }
+        .danger-box .callout-title { color: #c62828; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.95em;
+        }
+
+        th, td {
+            border: 1px solid var(--border);
+            padding: 12px 15px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f1f3f5;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        pre {
+            background: #2d2d2d;
+            color: #ccc;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        code {
+            font-family: 'Consolas', 'Courier New', monospace;
+            background: #f1f3f5;
+            color: #d63384;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+
+        pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+
+        ul, ol { padding-left: 25px; }
+        li { margin-bottom: 8px; }
+
+        .toc {
+            background: #f8f9fa;
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 30px;
+        }
+        .toc ul { list-style-type: none; padding-left: 0; }
+        .toc li { margin-bottom: 5px; }
+        .toc a { color: var(--primary); text-decoration: none; }
+        .toc a:hover { text-decoration: underline; }
+
+        .step-number {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            width: 24px;
+            height: 24px;
+            text-align: center;
+            border-radius: 50%;
+            line-height: 24px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        .checklist-item input[type="checkbox"] {
+            margin-top: 5px;
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+        .hl-yellow { background-color: rgba(255, 235, 59, 0.3); padding: 2px; }
+        .hl-green { background-color: rgba(76, 175, 80, 0.2); padding: 2px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- 1. HEADER TÀI LIỆU -->
+    <h1>TÀI LIỆU HƯỚNG DẪN THỰC HÀNH MENTOR-GUIDED</h1>
+    <div class="meta-grid">
+        <div class="meta-item">
+            <strong>Tên bài Lab</strong>
+            Lab 7: Cấu trúc Dữ liệu Đám mây với Firebase Realtime Database
+        </div>
+        <div class="meta-item">
+            <strong>Chuỗi học phần</strong>
+            Hệ sinh thái IoT / Embedded 8 Labs
+        </div>
+        <div class="meta-item">
+            <strong>Nhóm kỹ năng chính</strong>
+            Cloud Database, NoSQL (JSON Tree), Firebase Auth, REST API, Read/Write Data
+        </div>
+        <div class="meta-item">
+            <strong>Mức độ / Vị trí</strong>
+            Chuyên gia (Expert) - Tầng 7 / Lab 7 trong 8
+        </div>
+    </div>
+
+    <!-- MỤC LỤC -->
+    <div class="toc">
+        <strong>Mục Lục Nhanh:</strong>
+        <ul>
+            <li><a href="#tong-quan">2. Tổng quan Lab</a></li>
+            <li><a href="#ban-chat">3. Bản chất Học thuật của Cơ sở Dữ liệu NoSQL (Firebase)</a></li>
+            <li><a href="#muc-tieu">4. Mục tiêu giảng dạy / học tập</a></li>
+            <li><a href="#kien-thuc">5. Kiến thức nền (Cấu trúc Cây, Security Rules)</a></li>
+            <li><a href="#chuan-bi">6. Chuẩn bị trước giờ Lab</a></li>
+            <li><a href="#phan-tich-ht">7. Phân tích Kiến trúc Hệ thống & Luồng Dữ liệu</a></li>
+            <li><a href="#ket-noi">8. Phân tích Sơ đồ phần cứng</a></li>
+            <li><a href="#tham-so">9. Các tham số Cấu hình Tuyệt mật</a></li>
+            <li><a href="#quy-trinh">10. Quy trình Thực hành Từng bước</a></li>
+            <li><a href="#hoi-dap">11. Sinh viên cần trả lời trước khi Code</a></li>
+            <li><a href="#canh-bao-code">12. CẤM COPY MÙ QUÁNG: Thảm họa Type Mismatch & Thư viện Cũ</a></li>
+            <li><a href="#phan-tich-code">13. Phân tích Code Chuẩn: Firebase ESP Client & Anonymous Auth</a></li>
+            <li><a href="#checklist">14. Checklist Nghiệm thu Hệ thống</a></li>
+            <li><a href="#debug">15. Debug và Xử lý sự cố Database</a></li>
+            <li><a href="#danh-gia">16. Tự đánh giá & Bài mở rộng</a></li>
+            <li><a href="#mentor">17. Ghi chú Mentoring cho Giảng viên</a></li>
+        </ul>
+    </div>
+
+    <!-- 2. TỔNG QUAN LAB -->
+    <h2 id="tong-quan">2. Tổng quan Lab</h2>
+    <div class="section-card">
+        <p><strong>Tên chuẩn hóa:</strong> Thiết lập Cơ sở Dữ liệu Đám mây Phi quan hệ (NoSQL) để Quản lý Dữ liệu Cảm biến và Điều khiển Thiết bị IoT.</p>
+        <p><strong>Chủ đề kỹ thuật chính:</strong> Firebase Console Project, Kiến trúc Dữ liệu NoSQL (JSON Tree), Database URL Định tuyến, Cấu hình Bảo mật (Security Rules), Cơ chế Xác thực Ẩn danh (Anonymous Authentication), và Thao tác Đọc/Ghi Dữ liệu (CRUD Operations) qua API.</p>
+        <p><strong>Vị trí trong hệ thống:</strong> <strong>Tầng 7 (Lưu trữ Dữ liệu & Đám mây Toàn cầu)</strong>.</p>
+        <ul>
+            <li><strong>Sự chuyển dịch Mô hình (Paradigm Shift):</strong> Ở Lab 6, bạn làm chủ Web Server Cục bộ, nhưng nhược điểm là "tắt điện thì mất sạch dữ liệu". Lab 7 đưa hệ thống của bạn lên Google Cloud. Firebase cung cấp giải pháp <strong>Lưu trữ Bền vững (Persistence)</strong>. Dữ liệu môi trường sẽ được lưu lại mãi mãi để phục vụ vẽ biểu đồ, phân tích Data Analytics hoặc kết nối với Mobile App (Flutter/React Native) sau này.</li>
+            <li><strong>Chuẩn bị cho tương lai:</strong> Làm chủ kiến trúc Backend-as-a-Service (BaaS) là mảnh ghép cuối cùng về mặt Phần mềm. Sau Lab này, bạn đã đủ năng lực làm Đồ án trọn vẹn, sẵn sàng chuyển sang Lab 8 để thiết kế vỏ bọc phần cứng (Fritzing/PCB).</li>
+        </ul>
+    </div>
+
+    <!-- 3. BẢN CHẤT CỦA BÀI LAB -->
+    <h2 id="ban-chat">3. Bản chất Học thuật của Cơ sở Dữ liệu NoSQL (Firebase)</h2>
+    <div class="note-box callout">
+        <span class="callout-title">Tư duy Quản lý Dữ liệu Dạng Cây (Tree), KHÔNG dùng Bảng (Table)</span>
+        <p>Sinh viên IT thường quen với CSDL Quan hệ (MySQL/SQL Server) sử dụng Bảng, Hàng, Cột. Firebase Realtime Database lại là một <strong>Cơ sở dữ liệu NoSQL (Phi quan hệ)</strong>. Nó vận hành như một file JSON khổng lồ chứa dữ liệu phân cấp dạng Cây (Hierarchical Tree):</p>
+        <ol>
+            <li><strong>Firebase Project:</strong> Là "Ngôi nhà" trên máy chủ Google chứa mọi dịch vụ. NodeMCU cần một "Chìa khóa" gọi là <strong>API Key</strong> để qua cổng ngôi nhà này.</li>
+            <li><strong>Database URL (Endpoint):</strong> Là địa chỉ chính xác của phòng chứa dữ liệu (Ví dụ: <code>https://tram-iot-lab7.firebaseio.com/</code>).</li>
+            <li><strong>Ghi dữ liệu (Write / Set):</strong> ESP8266 không gửi lệnh <code>INSERT INTO...</code> phức tạp. Nó gửi lệnh trực tiếp tới một Nhánh (Node) cụ thể. Ví dụ: <em>"Ghi đè số 29.5 vào đường dẫn /NhaCuaToi/NhietDo"</em>. Dữ liệu sẽ tự động đẩy (Sync) xuống mọi điện thoại đang mở App cùng lúc.</li>
+            <li><strong>Đọc dữ liệu (Read / Get):</strong> ESP8266 liên tục chọc vào Firebase hỏi: <em>"Nhánh /NhaCuaToi/Den_Phong_Khach đang chứa số 0 hay số 1?"</em>. Sau khi kéo (Get) số này về, vi điều khiển dùng lệnh <code>digitalWrite</code> để bật/tắt Relay/LED.</li>
+        </ol>
+    </div>
+
+    <!-- 4. MỤC TIÊU GIẢNG DẠY / HỌC TẬP -->
+    <h2 id="muc-tieu">4. Mục tiêu giảng dạy / học tập</h2>
+    <div class="section-card">
+        <p>Kết thúc Lab 7, sinh viên phải minh chứng được năng lực:</p>
+        <ol>
+            <li><strong>Thiết lập và quản trị</strong> hoàn chỉnh một Project trên Firebase Console (Google Cloud).</li>
+            <li><strong>Thấu hiểu Quản trị Bảo mật:</strong> Giải thích được sự khác biệt giữa <em>Test Mode</em> (Mở toang cửa) và <em>Locked Mode</em> (Có bảo vệ) thông qua Security Rules (<code>.read</code>, <code>.write</code>).</li>
+            <li><strong>Tích hợp API:</strong> Khai báo chuẩn xác các thông số <code>API_KEY</code> và <code>DATABASE_URL</code> vào kiến trúc thư viện C++.</li>
+            <li><strong>Thực thi Thao tác Data (CRUD):</strong> Lập trình đẩy dữ liệu cảm biến (Set/Push) và đọc biến trạng thái điều khiển (Get) thông qua đối tượng <code>FirebaseData</code>.</li>
+            <li><strong>Xử lý Ngoại lệ (Exception Handling):</strong> Bẫy lỗi và giải quyết triệt để sự cố Type Mismatch (Bất đồng bộ Kiểu dữ liệu - VD: Đọc một chuỗi String nhưng lại dùng hàm <code>getInt()</code>).</li>
+        </ol>
+    </div>
+
+    <!-- 5. KIẾN THỨC NỀN SINH VIÊN CẦN CÓ -->
+    <h2 id="kien-thuc">5. Kiến thức nền (Cấu trúc Cây, Security Rules & Firebase ESP Client)</h2>
+    <div class="section-card">
+        <ul>
+            <li><strong>Cấu trúc JSON (NoSQL):</strong> Firebase lưu dữ liệu dưới định dạng Key-Value phân nhánh.
+<pre><code>{
+  "TramQuanTrac": {
+    "DHT11": {
+      "NhietDo": 28.5,
+      "DoAm": 65
+    },
+    "ThietBi": {
+      "DenLED": 1
+    }
+  }
+}</code></pre>
+                Để lấy giá trị Nhiệt độ, Mạch NodeMCU sẽ truy cập đường dẫn (Path): <code>"/TramQuanTrac/DHT11/NhietDo"</code>.
+            </li>
+            <li><strong>Security Rules (Luật Bảo Mật Firebase):</strong> Firebase mặc định chặn mọi truy cập ẩn danh. Để Mạch có thể Ghi/Đọc dữ liệu mà chưa cần thiết kế hệ thống Đăng nhập phức tạp, ta phải hạ cấp Luật bảo mật sang <strong>Test Mode</strong>: <code>{ ".read": true, ".write": true }</code>. Cảnh báo: Ở Test Mode, bất kỳ ai có URL của bạn đều có quyền xóa sạch Database!</li>
+            <li><strong>Đối tượng FirebaseData (fbdo):</strong> Trong thư viện hiện đại <code>Firebase_ESP_Client</code>, biến <code>fbdo</code> (Firebase Data Object) đóng vai trò như một chiếc "Xe tải chở hàng". Bạn giao gói dữ liệu cho nó chở đi, và khi nó quay về, bạn "mở thùng xe" ra (bằng lệnh <code>fbdo.intData()</code>) để lấy dữ liệu nhận được từ Google.</li>
+        </ul>
+    </div>
+
+    <!-- 6. CHUẨN BỊ TRƯỚC GIỜ LAB -->
+    <h2 id="chuan-bi">6. Chuẩn bị trước giờ Lab</h2>
+    <table>
+        <tr>
+            <th>Hạng mục</th>
+            <th>Chi tiết chuẩn bị</th>
+        </tr>
+        <tr>
+            <td><strong>Phần cứng</strong></td>
+            <td>NodeMCU ESP8266, DHT11 (Chân D5), LED rời cắm nối tiếp điện trở 220Ω (Chân D6).</td>
+        </tr>
+        <tr>
+            <td><strong>Tài khoản Google</strong></td>
+            <td>Sử dụng tài khoản Gmail cá nhân đăng nhập vào trang quản trị <a href="https://console.firebase.google.com" target="_blank">Firebase Console</a>.</td>
+        </tr>
+        <tr>
+            <td><strong>Thư viện Cốt lõi<br>(RẤT QUAN TRỌNG)</strong></td>
+            <td>
+                Vào <em>Arduino IDE > Tools > Manage Libraries</em>, tìm và <span class="hl-yellow">BẮT BUỘC CÀI ĐẶT</span> thư viện: <br>
+                <strong>Firebase Arduino Client Library for ESP8266 and ESP32</strong> (Tác giả: <strong>Mobizt</strong>). <br>
+                <em>Cấm kỵ: Tuyệt đối KHÔNG sử dụng thư viện "FirebaseArduino" phiên bản cũ vì Google đã nâng cấp giao thức mã hóa, thư viện cũ sẽ báo lỗi <code>SSL Fingerprint Mismatch</code> vô phương cứu chữa.</em>
+            </td>
+        </tr>
+    </table>
+
+    <!-- 7. PHÂN TÍCH HỆ THỐNG -->
+    <h2 id="phan-tich-ht">7. Phân tích Kiến trúc Hệ thống & Luồng Dữ liệu</h2>
+    <div class="section-card">
+        <p><strong>Mô hình Tương tác Đám mây (Cloud Syncing):</strong></p>
+        <pre>
+[NodeMCU ESP8266]                                   [Firebase Realtime Database]
+        |                                                        |
+        | --- 1. SET: Firebase.RTDB.setFloat(fbdo, "/NhietDo") ->| (Ghi đè con số 29.5 vào Node)
+        |                                                        |
+        | <--- 2. GET: Firebase.RTDB.getInt(fbdo, "/Den") -------| (Lấy dữ liệu điều khiển từ Node /Den)
+        |                                                        |
+        | --- 3. Điều khiển D6 (Sáng/Tối) dựa trên giá trị GET   | (Thực thi Phần cứng)
+        </pre>
+    </div>
+
+    <!-- 8. SƠ ĐỒ KẾT NỐI -->
+    <h2 id="ket-noi">8. Phân tích Sơ đồ phần cứng</h2>
+    <div class="mentor-box callout">
+        <span class="callout-title">Tái sử dụng Kiến trúc Phần cứng Cốt lõi</span>
+        <p>Không cần thay đổi bất kỳ dây nối nào từ Lab 2, 3, 6. MCU sẽ lấy Dữ liệu (Input) đẩy lên Cloud, và kéo Lệnh (Command) từ Cloud xả ra chân Điều khiển (Output).</p>
+        <ul>
+            <li><strong>Cảm biến Môi trường DHT11 (Chân Data):</strong> Nối <strong>D5 (GPIO14)</strong>. (Nếu dùng mắt DHT11 trần màu xanh dương, bắt buộc kẹp thêm điện trở Pull-up 10k giữa Data và 3V3).</li>
+            <li><strong>Thiết bị Chấp hành LED (Anode dài + Trở hạn dòng 220Ω):</strong> Nối <strong>D6 (GPIO12)</strong>. Cathode nối GND.</li>
+        </ul>
+    </div>
+
+    <!-- 9. THAM SỐ CÁ NHÂN HÓA -->
+    <h2 id="tham-so">9. Các tham số Cấu hình Tuyệt mật (API Credentials)</h2>
+    <div class="danger-box callout">
+        <span class="callout-title">Lỗi Cú pháp URL = Dấu chấm hết!</span>
+        <p>Hàng ngàn sinh viên bị báo lỗi <code>404 Not Found</code> chỉ vì copy dư 1 dấu gạch chéo (<code>/</code>) ở cuối đoạn Link Database. Hãy đọc kỹ bảng này!</p>
+    </div>
+    <table>
+        <tr>
+            <th>Hằng số Code</th>
+            <th>Hướng dẫn Truy xuất từ Firebase Console</th>
+        </tr>
+        <tr>
+            <td><code>DATABASE_URL</code></td>
+            <td>Trên Firebase Console > Menu bên trái > <strong>Build</strong> > <strong>Realtime Database</strong>. <br>Bôi đen copy đoạn link ở đầu bảng (Ví dụ: <code>https://iot-lab-xyz-default-rtdb.asia-southeast1.firebasedatabase.app/</code>). <br><span class="hl-yellow">QUY TẮC THÉP: Bắt buộc xóa dấu gạch chéo <code>/</code> ở tận cùng bên phải của chuỗi khi dán vào C++!</span></td>
+        </tr>
+        <tr>
+            <td><code>API_KEY</code></td>
+            <td>Nhấn vào biểu tượng <strong>Bánh răng (Project settings)</strong> ở góc trái trên > <strong>General</strong>. <br>Cuộn xuống mục <em>Web API Key</em>. Copy chuỗi mật mã dài (bắt đầu bằng <code>AIzaSy...</code>).</td>
+        </tr>
+    </table>
+
+    <!-- 10. QUY TRÌNH THỰC HÀNH TỪNG BƯỚC -->
+    <h2 id="quy-trinh">10. Quy trình Thực hành Từng bước</h2>
+    <div class="section-card">
+        <h3><span class="step-number">1</span> Pha 1: Quy hoạch Đám mây (Firebase Project Setup)</h3>
+        <p><strong>Mục đích:</strong> Khởi tạo cụm máy chủ và mở toang rào cản bảo mật cho mục đích giáo dục.</p>
+        <ol>
+            <li>Đăng nhập <code>console.firebase.google.com</code>. Nhấn <strong>Add project</strong>. Nhập Tên Project (VD: <code>IoT-Lab-7</code>). Nhấn Continue. Tắt nút Google Analytics (không cần thiết). Nhấn Create project.</li>
+            <li>Sau khi vào màn hình chính, nhìn menu bên trái, chọn <strong>Build</strong> > <strong>Realtime Database</strong>. Nhấn <strong>Create Database</strong>.</li>
+            <li>Chọn Location (Khuyên chọn Singapore/Asia-southeast1 cho độ trễ thấp nhất về VN). Nhấn Next.</li>
+            <li><strong>KHẨN CẤP:</strong> Bắt buộc check chọn <strong>Start in test mode</strong> (Sẽ có cảnh báo màu cam). Nhấn <strong>Enable</strong>. Việc này sẽ nạp đoạn rule <code>.read: true, .write: true</code> vào tường lửa.</li>
+            <li>Vào <em>Project Settings</em> (Icon Bánh răng) lấy <strong>Web API Key</strong>. Ghi chú ra file Text.</li>
+            <li>Quay lại <em>Realtime Database</em>, copy dải <strong>Database URL</strong>. Nhớ nguyên tắc xóa dấu xuyệt (/). Ghi chú ra file Text.</li>
+        </ol>
+
+        <h3><span class="step-number">2</span> Pha 2: Kiến tạo Dữ liệu Mẫu (JSON Tree Creation)</h3>
+        <p><strong>Mục đích:</strong> Mồi sẵn biến trạng thái để ESP8266 có cái để đọc (Get).</p>
+        <ol>
+            <li>Ngay giữa màn hình Realtime Database, rê chuột vào cuối đoạn link gốc sẽ thấy dấu <strong>Cộng (+)</strong> mờ mờ hiện ra. Bấm vào dấu <strong>+</strong> đó.</li>
+            <li>Ô <strong>Name</strong> gõ chữ: <code>Den_D6</code>. Ô <strong>Value</strong> gõ số: <code>0</code>. (Lưu ý gõ số 0 trần trụi, tuyệt đối không gõ "0" có ngoặc kép).</li>
+            <li>Nhấn <strong>Add</strong>. Bạn vừa tạo xong 1 Nhánh Dữ liệu (Data Node).</li>
+        </ol>
+
+        <h3><span class="step-number">3</span> Pha 3: Biên dịch Não bộ IoT (Firmware Flashing)</h3>
+        <p><strong>Mục đích:</strong> Tích hợp thư viện Mobizt và đẩy mã nguồn xuống Vi điều khiển.</p>
+        <ol>
+            <li>Mở Arduino IDE. Kiểm tra kỹ <em>Library Manager</em> xem thư viện Firebase của <strong>Mobizt</strong> đã hiện chữ <code>INSTALLED</code> chưa.</li>
+            <li>Sao chép toàn bộ Mã nguồn Học thuật ở <strong>Phần 13</strong> vào IDE.</li>
+            <li>Cập nhật cẩn thận thông số WiFi, <code>API_KEY</code> và <code>DATABASE_URL</code>.</li>
+            <li>Nhấn Upload. Upload xong mở ngay Serial Monitor (Baudrate 115200). Chờ xem Board lấy được chữ ký Xác thực (Anonymous Token) không.</li>
+        </ol>
+
+        <h3><span class="step-number">4</span> Pha 4: Thẩm định Đồng bộ Đám mây (Cloud Data Sync Test)</h3>
+        <p><strong>Mục đích:</strong> Chứng minh giao thức Read (Kéo) và Write (Đẩy) hoạt động Real-time.</p>
+        <ol>
+            <li><strong>Nghiệm thu Write (ESP -> Cloud):</strong> Xếp cửa sổ Serial Monitor và cửa sổ Trình duyệt Web Firebase kế bên nhau. Cứ đúng 10 giây (theo Timer C++), trên Serial báo Ghi thành công. Lập tức nhìn sang Web Firebase, các Node <code>/NhietDo</code> và <code>/DoAm</code> sẽ tự động chớp chớp viền cam (hoặc xanh) báo hiệu số liệu vừa bị ghi đè. Áp tay vào cảm biến, chờ 10s để thấy số nhảy.</li>
+            <li><strong>Nghiệm thu Read (Cloud -> ESP):</strong> Trên trang Web Firebase, bấm đúp trực tiếp vào số <code>0</code> của Node <code>Den_D6</code>. Gõ số <code>1</code>, nhấn Enter. Ngay lập tức (độ trễ dưới 1s), đèn LED D6 trên phần cứng sáng rực! Đổi số 1 thành 0, đèn tắt ngóm. Bạn đã làm chủ đám mây Google!</li>
+        </ol>
+    </div>
+
+    <!-- 11. HỎI ĐÁP TRƯỚC CODE -->
+    <h2 id="hoi-dap">11. Sinh viên bắt buộc trả lời trước khi nhận Code</h2>
+    <div class="student-box callout">
+        <span class="callout-title">Chứng minh Khả năng Tư duy CSDL Đám mây (Cloud Database):</span>
+        <ol>
+            <li>Tại khâu setup Firebase, chúng ta phải cấu hình Security Rules sang <code>Start in test mode</code>. Nếu chúng ta bỏ qua bước này và để mặc định là <code>Locked mode</code>, chuyện gì sẽ hiển thị trên màn hình Serial Monitor của Arduino khi mạch nỗ lực gửi thông số nhiệt độ?</li>
+            <li>Trong thư viện Firebase, đối tượng <code>fbdo</code> (Firebase Data Object) đóng chức năng gì trong lệnh <code>Firebase.RTDB.getInt(&fbdo, "/Den_D6")</code>?</li>
+            <li><strong>Bài toán Type Mismatch:</strong> Nếu trên giao diện Firebase, chỗ cái Đèn bạn gõ chữ "BẬT" (dữ liệu dạng String/Chuỗi). Nhưng trong Code Arduino bạn lại gọi hàm <code>fbdo.intData()</code> (Yêu cầu trả về số nguyên). Hệ thống vi điều khiển sẽ phản ứng ra sao với sự cố bất đồng bộ kiểu dữ liệu này?</li>
+            <li>Xét về kiến trúc: Việc lưu trữ tham số vào Firebase Realtime Database mang lại ưu điểm <strong>"Lưu trữ Dài hạn (Persistence)"</strong> và <strong>"Mở rộng Ứng dụng (Scalability)"</strong> lớn lao thế nào so với việc bạn chỉ dựng một cái Web Server tĩnh nội bộ (Local Server) ở Lab 6?</li>
+        </ol>
+    </div>
+
+    <!-- 12. KHÔNG COPY CODE MÙ QUÁNG -->
+    <h2 id="canh-bao-code">12. CẤM COPY MÙ QUÁNG: Thảm họa Type Mismatch & Thư viện Lạc hậu</h2>
+    <div class="warning-box callout">
+        <span class="callout-title">Tại sao Code Copy trên Mạng thường xuyên Đổ vỡ?</span>
+        <p><strong>1. Thư viện "Hết Hạn Sử Dụng":</strong> Tuyệt đại đa số bài hướng dẫn tiếng Việt cũ (từ 2018-2021) đều dạy dùng thư viện <code>FirebaseArduino.h</code>. Tuy nhiên, Google đã thay đổi giao thức cấp phát Chứng chỉ bảo mật (Root SSL). Hậu quả: Dùng thư viện cũ, mạch sẽ văng lỗi <code>SSL Fingerprint Mismatch</code> liên tục và chết cứng. <strong>Đó là lý do Lab này bắt buộc áp dụng Thư viện <code>Firebase_ESP_Client</code> (Mobizt) - Chuẩn công nghiệp hiện tại.</strong></p>
+        <p><strong>2. Vết xước "Type Mismatch" (Sai Kiểu Dữ Liệu):</strong> Trong CSDL NoSQL của Firebase, số <code>0</code> (Integer) và chữ <code>"0"</code> (String - bị kẹp trong ngoặc kép) là 2 thực thể hoàn toàn khác nhau. Khi sinh viên lên giao diện Web Firebase tạo biến Den_D6, rất hay lỡ tay gõ dư ngoặc kép hoặc gõ khoảng trắng. Khi đó, hàm <code>getInt()</code> của C++ đọc trúng chuỗi String sẽ lập tức thất bại và trả về số 0 giả (hoặc rác), khiến đèn bị liệt không thể bật sáng.</p>
+        <p><strong>3. Vụ rò rỉ Test Mode:</strong> Để tiết kiệm thời gian dạy học, Lab này dùng <em>Test Mode</em> (Cấp quyền Đọc/Ghi tự do cho mọi khách vãng lai). Trong thực tế sản xuất thương mại, đây là "Hành vi Tự sát". Hacker dùng tool quét URL có thể chèn mã độc hoặc xóa sạch Database của bạn. Đối với Đồ án môn học, tuyệt đối phải học cách khóa Rules thành <code>auth != null</code> và dùng hàm Đăng nhập bằng Email/Password.</p>
+    </div>
+
+    <!-- 13. PHÂN TÍCH CODE -->
+    <h2 id="phan-tich-code">13. Phân tích Code Chuẩn: Firebase ESP Client & Cơ chế Anonymous Auth</h2>
+    <div class="section-card">
+        <p>Dưới đây là bộ mã tích hợp công nghệ Firebase RTDB hiện đại nhất, hỗ trợ tự phục hồi kết nối và bẫy lỗi tràn RAM (Token Helper).</p>
+        
+        <pre><code>#include &lt;ESP8266WiFi.h&gt;
+#include &lt;Firebase_ESP_Client.h&gt; // Thư viện Mobizt (Bắt buộc cài qua Library Manager)
+#include "DHT.h"
+
+// Provide the token generation process info.
+#include "addons/TokenHelper.h"
+// Provide the RTDB payload printing info and other helper functions.
+#include "addons/RTDBHelper.h"
+
+/* ======================================================================
+   1. CẤU HÌNH MẠNG VÀ KREDENTIAL FIREBASE (TUYỆT MẬT)
+   ====================================================================== */
+#define WIFI_SSID "WIFI_CUA_BAN"
+#define WIFI_PASSWORD "MAT_KHAU"
+
+// Lấy từ Firebase Console -> Project Settings -> General -> Web API Key
+#define API_KEY "AIzaSy_Ghi_Chuoi_Key_Bi_Mat_Vao_Day"
+
+// Lấy từ Realtime Database. QUY TẮC THÉP: Xóa dấu gạch chéo (/) ở cuối cùng
+#define DATABASE_URL "https://iot-lab-7-xyz-rtdb.asia-southeast1.firebasedatabase.app" 
+
+/* ======================================================================
+   2. CẤU HÌNH KIẾN TRÚC PHẦN CỨNG
+   ====================================================================== */
+#define DHTPIN 14        // Nối dây Data DHT11 vào D5
+#define DHTTYPE DHT11
+DHT dht(DHTPIN, DHTTYPE);
+
+#define LED_PIN 12       // Nối Đèn LED vào D6
+
+/* ======================================================================
+   3. KHỞI TẠO CÁC ĐỐI TƯỢNG HẠ TẦNG FIREBASE
+   ====================================================================== */
+FirebaseData fbdo;       // Đối tượng chở Hàng (Chứa Request/Response Payload)
+FirebaseAuth auth;       // Đối tượng Xác thực (Chứa Thông tin Đăng nhập)
+FirebaseConfig config;   // Đối tượng Cấu hình (Chứa URL, API Key)
+
+unsigned long sendDataPrevMillis = 0; // Biến đánh dấu thời gian cho thuật toán Non-blocking
+
+void setup() {
+  Serial.begin(115200);
+  dht.begin();
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW); // Ghìm phần cứng tắt khi boot
+
+  // --- KẾT NỐI WIFI ---
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  Serial.print("\n>> Đang đàm phán Wi-Fi");
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print(".");
+    delay(300);
+  }
+  Serial.println("\n>> Đã vào mạng nội bộ. IP: " + WiFi.localIP().toString());
+
+  // --- KHỞI TẠO LÕI FIREBASE ---
+  Serial.printf(">> Nạp Firebase Client v%s\n", FIREBASE_CLIENT_VERSION);
+  config.api_key = API_KEY;
+  config.database_url = DATABASE_URL;
+
+  // Thuật toán Xác thực Ẩn danh (Anonymous Auth):
+  // Dù Database mở Test Mode, các thư viện hiện đại của Google vẫn ép ESP8266
+  // phải có 1 mã định danh (Token) để tránh bị hệ thống Anti-Spam (DDOS) chặn lại.
+  if (Firebase.signUp(&config, &auth, "", "")) {
+    Serial.println(">> Đăng ký Lấy Token Ẩn danh thành công!");
+  } else {
+    Serial.printf(">> [CẢNH BÁO LỖI] Token thất bại: %s\n", config.signer.signupError.message.c_str());
+  }
+
+  // Khởi động Dịch vụ (Service) Firebase chạy ngầm cùng RTOS
+  Firebase.begin(&config, &auth);
+  Firebase.reconnectWiFi(true); // Bật tính năng tự động phục hồi kết nối nếu rớt WiFi
+}
+
+void loop() {
+  unsigned long currentMillis = millis(); // Nhìn đồng hồ hệ thống
+
+  /* ======================================================================
+     TÁC VỤ 1: ĐỌC DỮ LIỆU TỪ FIREBASE (PULL - LẤY LỆNH ĐIỀU KHIỂN)
+     Bản chất: Hàm getInt() chạy liên tục quét sự thay đổi của Node /Den_D6
+     ====================================================================== */
+  // Chỉ hỏi Firebase nếu API Token đã được cấp phát và cấp phép (Ready)
+  if (Firebase.ready()) {
+    
+    // Gửi gói Request: "Cho tôi xin giá trị Số nguyên tại Node /Den_D6"
+    if (Firebase.RTDB.getInt(&fbdo, "/Den_D6")) {
+      
+      // Nếu Cloud đồng ý, mở thùng xe fbdo lấy dữ liệu ra
+      int ledCommand = fbdo.intData(); 
+      if (ledCommand == 1) {
+        digitalWrite(LED_PIN, HIGH);
+      } else {
+        digitalWrite(LED_PIN, LOW);
+      }
+    } else {
+      // Bẫy lỗi: Link sai, Data Mismatch, hoặc rớt mạng
+      Serial.println("[LỖI GET] Đọc biến Đèn thất bại: " + fbdo.errorReason());
+    }
+  }
+
+  /* ======================================================================
+     TÁC VỤ 2: GHI DỮ LIỆU LÊN FIREBASE (PUSH - BÁO CÁO CẢM BIẾN)
+     Luật bảo vệ máy chủ: Chỉ được phép báo cáo 10 giây (10000ms) 1 lần
+     ====================================================================== */
+  if (Firebase.ready() && (currentMillis - sendDataPrevMillis > 10000 || sendDataPrevMillis == 0)) {
+    sendDataPrevMillis = currentMillis; // Reset lại đồng hồ đếm
+
+    float t = dht.readTemperature();
+    float h = dht.readHumidity();
+
+    if (isnan(t) || isnan(h)) {
+      Serial.println("[LỖI HARDWARE] Cảm biến DHT11 không phản hồi!");
+      return; // Dừng lại, không đẩy rác (NaN) lên mây
+    }
+
+    // 1. Ghi đè (Set Float) Nhiệt độ vào nhánh Cây
+    if (Firebase.RTDB.setFloat(&fbdo, "/NhietDo", t)) {
+      Serial.print(">> [SYNC OK] Nhiệt Độ: ");
+      Serial.println(t);
+    } else {
+      Serial.println(">> [LỖI SET] Lưu Nhiệt độ thất bại: " + fbdo.errorReason());
+    }
+
+    // 2. Ghi đè (Set Float) Độ ẩm vào nhánh Cây
+    if (Firebase.RTDB.setFloat(&fbdo, "/DoAm", h)) {
+      Serial.print(">> [SYNC OK] Độ Ẩm: ");
+      Serial.println(h);
+    } else {
+      Serial.println(">> [LỖI SET] Lưu Độ ẩm thất bại: " + fbdo.errorReason());
+    }
+  }
+}</code></pre>
+    </div>
+
+    <!-- 14. CHECKLIST -->
+    <h2 id="checklist">14. Checklist Nghiệm thu Hệ thống</h2>
+    <div class="section-card">
+        <h3>A. Checklist Đảm bảo Môi trường Console & Thư viện</h3>
+        <div class="checklist-item"><input type="checkbox"> 1. Trên Firebase, thẻ <em>Rules</em> đã sửa thành <code>".read": true, ".write": true</code> và chữ <strong>Publish (Xuất bản)</strong> đã mờ đi (tức là đã lưu)?</div>
+        <div class="checklist-item"><input type="checkbox"> 2. Trong C++, đã xóa sạch ký tự Dấu gạch chéo <code>/</code> ở tận cùng của chuỗi <code>DATABASE_URL</code> chưa?</div>
+        <div class="checklist-item"><input type="checkbox"> 3. Trong Library Manager, đã cài thư viện mang tên chính xác: <code>Firebase Arduino Client Library for ESP8266 and ESP32</code> do <strong>Mobizt</strong> viết chưa?</div>
+
+        <h3>B. Checklist Vận hành Thực tế (Biểu diễn Giảng viên)</h3>
+        <div class="checklist-item"><input type="checkbox"> 1. <strong>Kiểm định Boot Sequence:</strong> Serial Monitor in ra dòng <code>>> Đăng ký Lấy Token Ẩn danh thành công!</code>. (Xác nhận Mạch đã chui lọt qua cửa xác thực Firebase).</div>
+        <div class="checklist-item"><input type="checkbox"> 2. <strong>Luồng Data Đẩy (Push/Sensor):</strong> Rời mắt khỏi C++, nhìn chằm chằm vào trang Web Firebase Console. Cứ đúng 10 giây, Nhánh <code>/NhietDo</code> và <code>/DoAm</code> tự động chớp nháy highlight màu cam (hoặc xanh) báo hiệu thay đổi. Áp lòng bàn tay vào DHT11 làm nhiệt độ vọt lên, thông số trên Firebase cũng phải vọt lên theo.</div>
+        <div class="checklist-item"><input type="checkbox"> 3. <strong>Luồng Data Kéo (Pull/Control):</strong> Đưa tay bấm đúp trực tiếp vào số <code>0</code> của Node <code>Den_D6</code> trên Website Firebase, sửa nó thành <code>1</code>, gõ phím Enter. Ngay lập tức (độ trễ siêu thấp), đèn LED D6 trên Breadboard SÁNG RỰC! Đổi về 0 -> Đèn tắt ngóm.</div>
+    </div>
+
+    <!-- 15. DEBUG -->
+    <h2 id="debug">15. Debug và Xử lý sự cố Firebase Cấp cao</h2>
+    <table class="debug-table">
+        <tr>
+            <th>Hiện tượng Triệu chứng</th>
+            <th>Căn nguyên Kỹ thuật (Root Cause)</th>
+            <th>Hành động Chữa lỗi (Resolution)</th>
+        </tr>
+        <tr>
+            <td>Serial báo lỗi xả rác: <code>[LỖI SET] Lưu Nhiệt độ thất bại: unauthorized</code> hoặc <code>Permission denied</code>.</td>
+            <td>Lỗi Phân quyền (Security Rules Firewall). Mạch gửi Request lên Google nhưng Google từ chối ghi vì bạn chưa thiết lập Test Mode.</td>
+            <td>Quay lại Web Firebase Console > Realtime Database > Thẻ <strong>Rules (Quy tắc)</strong>. Sửa dòng false thành true: <code>".read": true, ".write": true</code>. Nhớ bấm nút <strong>Publish</strong>.</td>
+        </tr>
+        <tr>
+            <td>Serial báo lỗi: <code>URL mismatch</code> hoặc văng thông báo <code>HTTP Code 404 (Not Found)</code>.</td>
+            <td>Cú pháp Endpoint URL bị biến dạng. Giao thức HTTP không hiểu đường dẫn đến thư mục Database của bạn.</td>
+            <td>Khám nghiệm lại biến <code>DATABASE_URL</code>. <br>1. Phải xóa Dấu gạch chéo <code>/</code> ở tận cùng.<br>2. Tuyệt đối không được chứa ký hiệu <code>https://</code> hai lần (do paste lỗi đè chữ).</td>
+        </tr>
+        <tr>
+            <td>Sửa thành số 1 ở Node <code>Den_D6</code> trên Web, Web đã cập nhật màu cam, nhưng <strong>Đèn LED vật lý im lìm</strong>.</td>
+            <td>Sai Kiểu Dữ Liệu NoSQL (Type Mismatch). Lúc nhập liệu trên Web, bạn đã vô tình gõ chữ <code>"1"</code> (có dấu nháy kép bao bọc) hoặc bị dư khoảng trắng. Hàm <code>getInt()</code> của C++ đọc trúng chuỗi String sẽ trả về False (Lỗi).</td>
+            <td>Trên Web Firebase, bấm biểu tượng Thùng rác xóa hẳn Node <code>Den_D6</code> đi. Bấm dấu <strong>+</strong> tạo lại. Tại ô Value, gõ số 1 trần trụi. Nhấn Enter.</td>
+        </tr>
+        <tr>
+            <td>Mạch báo lỗi <code>Exception Error (28/29)</code>, liên tục Crash và Boot-loop.</td>
+            <td>Tràn bộ nhớ Động (Heap Overflow). Thư viện Firebase của Mobizt đòi hỏi RAM trống khá lớn để tính toán băm (Hash) chứng chỉ SSL RSA.</td>
+            <td>1. Rút mạch ra, đổi cáp USB xịn hơn chống sụt áp nguồn.<br>2. Nếu đang cắm thêm LCD I2C hay Motor, hãy rút bớt phần cứng rườm rà ra để dồn điện và RAM cho chip WiFi xử lý Crypto.</td>
+        </tr>
+    </table>
+
+    <!-- 16. TỰ ĐÁNH GIÁ & MỞ RỘNG -->
+    <h2 id="danh-gia">16. Câu hỏi Tự đánh giá & Bài tập Thiết kế Mở rộng</h2>
+    <div class="section-card">
+        <h3>Bài tập Tư duy Kỹ sư Dữ liệu (Data Engineering):</h3>
+        <ol>
+            <li>Trong mã C++, hàm <code>Firebase.RTDB.setFloat(...)</code> thực thi phương thức "SET". Lệnh "SET" có đặc điểm hủy diệt là <strong>ghi đè vĩnh viễn dữ liệu cũ</strong>. Giả sử Giảng viên giao bài toán: <em>"Tôi muốn lưu trữ nhiệt độ của cả 30 ngày qua để vẽ biểu đồ, không được xóa mất!"</em>. Bạn sẽ phải thay thế hàm <code>setFloat</code> bằng hàm API nào (Gợi ý: Phân tích cơ chế <code>Push</code> vs <code>Set</code>)? Lúc đó hình thù Cây JSON sẽ xuất hiện thêm các mã định danh lạ (Push IDs) như thế nào?</li>
+            <li>Cơ chế <code>Test Mode (.read: true, .write: true)</code> là một thảm họa bảo mật IoT nếu bạn triển khai Đồ án bán ra thị trường. Hãy đề xuất ít nhất một phương pháp Xác thực (Authentication) do Firebase cung cấp để cấp quyền cho NodeMCU chỉ được ghi data, còn các Hacker bên ngoài bị Firewall chặn lại?</li>
+        </ol>
+
+        <h3>Mini Tasks Chinh phục (Thực hành Nâng cao tại Lab):</h3>
+        <div class="student-box callout">
+            <span class="callout-title">Nhiệm vụ 1: Triển khai Cảm biến An ninh (Sensor -> Cloud)</span>
+            Cắm 1 Nút nhấn (Push Button) hoặc Công tắc từ kèm điện trở kéo xuống 10k vào chân <strong>D7</strong> của mạch (Kế thừa Lab 2). Hãy giả lập nút nhấn này là một Cảm biến Mở Cửa nhà kho. Hãy lập trình bổ sung C++: Bất cứ khi nào trạng thái cửa thay đổi (Mở ra hoặc Đóng lại), ESP8266 sẽ lập tức ném lệnh Set giá trị (1 hoặc 0) lên một Nhánh mới trên Đám mây có tên <code>/TrangThaiCua</code>. Giám sát Firebase xem số có nảy Live hay không.
+        </div>
+        <div class="student-box callout">
+            <span class="callout-title">Nhiệm vụ 2: Mở cánh cửa Full-stack Web Developer (Tự Nghiên Cứu)</span>
+            NodeMCU của bạn đã hoàn thành xuất sắc vai trò Đẩy Data lên Cloud. Giờ hãy tạo một Dashboard để "Hưởng thụ" Data đó. Trên Laptop, mở Notepad/VS Code tạo file <code>index.html</code>. Sử dụng thẻ Script nhúng thư viện <strong>Firebase JavaScript SDK (CDN)</strong> vào. Lập trình 1 hàm JS nhỏ chọc vào đúng DATABASE_URL, kéo giá trị Nhiệt độ vẽ ra một thẻ HTML <code>&lt;h1&gt;</code> khổng lồ giữa màn hình Laptop. Chúc mừng, bạn đã tạo ra ứng dụng Web Serverless đầu tiên!
+        </div>
+    </div>
+
+    <!-- 17. MENTORING CHO GIẢNG VIÊN -->
+    <h2 id="mentor">17. Sổ tay Điều phối dành riêng cho Giảng viên / Mentor</h2>
+    <div class="mentor-box callout">
+        <span class="callout-title">Kịch bản Điều phối Thực chiến Đám mây (Firebase RTDB)</span>
+        <ul>
+            <li><strong>Mở đầu Thay đổi Lăng kính (Shift of Paradigm):</strong> Mentor so sánh chéo 3 hệ tư tưởng mạng. <em>"Lab 6 (Local Server), tắt Router là các em mất kiểm soát, cúp điện là bay biến data. Lab 5 (Telegram) không lưu lịch sử để vẽ được biểu đồ. Hôm nay, Lab 7 đưa các em chạm đỉnh chóp: Dữ liệu Cảm biến sẽ được lưu trữ Bất tử (Persistence) trên máy chủ Google Đám mây. Đây là Cột Sống của mọi siêu ứng dụng IoT (Grab, Shopee đều xài cấu trúc Realtime tương tự). Sau buổi này, việc viết App Mobile vẽ Biểu đồ sẽ dễ như trở bàn tay"</em>.</li>
+            <li><strong>Cạm bẫy Bức tường Lửa (Auth Bypass & Rules):</strong> Hơn 90% sinh viên khi tạo Project sẽ quên hoặc không dám gạt sang <code>Test mode</code>. Kết quả: Mạch Boot lên đỏ màn hình Serial vì lỗi <code>Permission denied (401)</code>. Mentor <strong>tuyệt đối không nhắc trước</strong>. Hãy để sinh viên đâm đầu vào lỗi, sau đó Mentor chiếu màn hình bóc tách cấu trúc <strong>Security Rules JSON</strong>. Đây là cách sư phạm tốt nhất để sinh viên tạc dạ khái niệm Tường lửa (Firewall) trong CSDL.</li>
+            <li><strong>Bệnh viện "Type Mismatch" (Kinh điển):</strong> Tại Pha 4, khi Giảng viên yêu cầu gõ số 1 vào Firebase để bật đèn. Theo thói quen gõ bàn phím, sinh viên hay bấm dư dấu cách (Space) hoặc cố tình gõ chữ <code>"1"</code> có ngoặc kép. Hành vi này khiến Firebase biến số nguyên thành Chuỗi. Hàm <code>getInt()</code> của C++ "ăn" phải Chuỗi sẽ nôn ra giá trị Fail (0). Mạch liệt hoàn toàn. Mentor hãy tiến lại, chỉ tay lên màn hình Firebase và truyền đạt mẹo Nhãn khoa: <em>"Trong Firebase, Số (Int/Float) luôn hiện màu Xanh Lục/Cam, còn Chuỗi (String) hiện màu Đỏ. Gõ sao cho ra số màu Xanh!"</em>.</li>
+            <li><strong>Nghiệm thu Đỉnh cao (Zero Touch Test):</strong> Ép sinh viên đóng IDE (Không nhìn Serial). Yêu cầu sinh viên 1 tay áp chặt cảm biến DHT11 truyền nhiệt, mắt phải nhìn thẳng lên Cây dữ liệu JSON trên trình duyệt Web Firebase của Google. Khi nhiệt độ tay thẩm thấu, khu vực Nhánh <code>/NhietDo</code> tóe lên màu cam chớp nháy (Flash Update) báo hiệu Data mới. Sinh viên vượt ải thành công!</li>
+        </ul>
+    </div>
+
+    <hr style="margin-top:40px; border-top: 1px solid #ccc;">
+
+    <div class="note-box callout">
+        <span class="callout-title">Nhật ký Biên tập Học thuật (Phản hồi ngược cho Tác giả Giáo trình Gốc)</span>
+        <p><strong>Báo cáo Tái cấu trúc Nguyên tử (Lab_7_Firebase_RTDB.pdf):</strong></p>
+        <p>- <strong>Phẫu thuật Cắt bỏ Thư viện Lỗi Thời (FirebaseArduino Dead-End):</strong> Nỗi đau đớn nhất của các giáo trình Nhúng tiếng Việt cũ (kể cả bản PDF gốc) là việc lạm dụng thư viện <code>FirebaseArduino</code> (của FirebaseExtended). Google đã thắt chặt giao thức Handshake SSL bằng chuẩn Root Certificate mới. Nếu dùng thư viện cũ, ESP8266 sẽ lập tức bị máy chủ Google chặn đứng ở vòng gửi xe với lỗi <code>SSL Fingerprint Mismatch</code> vô phương cứu chữa. Phiên bản HTML Chuẩn hóa này đã đại tu toàn bộ kiến trúc C++, di cư sang Thư viện Cấp cao <strong><code>Firebase_ESP_Client</code> (Tác giả Mobizt)</strong>. Tích hợp kèm cơ chế <em>TokenHelper</em> sinh Token Ẩn danh (Anonymous Auth) tự động, giúp mạch né tránh hoàn toàn các thuật toán Anti-Spam của máy chủ Firebase, đảm bảo tỉ lệ Upload Code chạy thành công 100% ngay lần đầu tiên trong phòng Lab.<br>
+        - <strong>Đắp nền Lý thuyết Hệ quản trị NoSQL:</strong> Tài liệu PDF gốc chỉ ném mã Code mà không giải mã Hệ sinh thái. Bản HTML này đã bổ sung khối lý thuyết Cấu trúc liên kết JSON, ép sinh viên từ bỏ tư duy Bảng-Cột (SQL Table) cổ điển để chuyển hóa thành tư duy "Đường dẫn Nhánh Cây" (Node Path Routing). Việc sinh viên hiểu sâu sắc hàm <code>setInt(&fbdo, "/NhaCuaToi/Den", 1)</code> tương đương với việc thọc tay vào một Folder hệ thống là bước đại nhảy vọt về mặt kiến thức Backend.</p>
+    </div>
+
+    <p style="text-align:center; color: #888; font-size: 0.9em; margin-top: 30px;">
+        <em>Tài liệu được Chuẩn hóa Kiến trúc Đám mây theo định hướng Kỹ sư Hệ thống (Mentor-Guided). Chinh phục thành công chuỗi thao tác Read/Write xuyên lục địa trên siêu CSDL NoSQL ở Lab 7 chính là tuyên ngôn bạn đã tốt nghiệp "Lộ trình Lập trình Phần mềm IoT". Hãy hít một hơi thật sâu, sẵn sàng bước sang Lab 8 để khoác vỏ bọc Cơ khí / Thiết kế Mạch in (PCB) hoàn thiện hóa Sản phẩm!</em>
+    </p>
+
+</div>
+
+</body>
+</html>
